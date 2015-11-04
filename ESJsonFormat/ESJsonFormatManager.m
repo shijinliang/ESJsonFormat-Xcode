@@ -47,17 +47,31 @@
 + (NSString *)formatObjcWithKey:(NSString *)key value:(NSObject *)value classInfo:(ESClassInfo *)classInfo{
     NSString *qualifierStr = @"copy";
     NSString *typeStr = @"NSString";
+    
     //判断大小写
     if ([ESUppercaseKeyWords containsObject:key] && [ESJsonFormatSetting defaultSetting].uppercaseKeyWordForId) {
         key = [key uppercaseString];
     }
+    
+//    NSString *plistPath = [[NSBundle mainBundle] pathForResource:@"demo" ofType:@"plist"];
+    NSString *plistPath = @"/Users/xiaoshi/demo.plist";
+    NSDictionary *dic = [[NSDictionary alloc]initWithContentsOfFile:plistPath];
+    
+    NSString *keyNote = @"";
+    
+    if ([[dic allKeys] containsObject:key]) {
+        keyNote = [dic objectForKey:key];
+    } else {
+        keyNote = key;
+    }
+    
     if ([value isKindOfClass:[NSString class]]) {
-        return [NSString stringWithFormat:@"@property (nonatomic, %@) %@ *%@;",qualifierStr,typeStr,key];
+        return [NSString stringWithFormat:@"/** %@ */ \n@property (nonatomic, %@) %@ *%@;",keyNote, qualifierStr,typeStr,key];
     }else if([value isKindOfClass:[@(YES) class]]){
         //the 'NSCFBoolean' is private subclass of 'NSNumber'
         qualifierStr = @"assign";
         typeStr = @"BOOL";
-        return [NSString stringWithFormat:@"@property (nonatomic, %@) %@ %@;",qualifierStr,typeStr,key];
+        return [NSString stringWithFormat:@"/** %@ */ \n@property (nonatomic, %@) %@ %@;",keyNote,qualifierStr,typeStr,key];
     }else if([value isKindOfClass:[NSNumber class]]){
         qualifierStr = @"assign";
         NSString *valueStr = [NSString stringWithFormat:@"%@",value];
@@ -71,7 +85,7 @@
                 typeStr = @"long long";
             }
         }
-        return [NSString stringWithFormat:@"@property (nonatomic, %@) %@ %@;",qualifierStr,typeStr,key];
+        return [NSString stringWithFormat:@"/** %@ */ \n@property (nonatomic, %@) %@ %@;",keyNote,qualifierStr,typeStr,key];
     }else if([value isKindOfClass:[NSArray class]]){
         NSArray *array = (NSArray *)value;
         
@@ -90,9 +104,9 @@
         qualifierStr = @"strong";
         typeStr = @"NSArray";
         if ([ESJsonFormatSetting defaultSetting].useGeneric && [ESUtils isXcode7AndLater]) {
-            return [NSString stringWithFormat:@"@property (nonatomic, %@) %@%@ *%@;",qualifierStr,typeStr,genericTypeStr,key];
+            return [NSString stringWithFormat:@"/** %@ */ \n@property (nonatomic, %@) %@%@ *%@;",keyNote,qualifierStr,typeStr,genericTypeStr,key];
         }
-        return [NSString stringWithFormat:@"@property (nonatomic, %@) %@ *%@;",qualifierStr,typeStr,key];
+        return [NSString stringWithFormat:@"/** %@ */ \n@property (nonatomic, %@) %@ *%@;",keyNote,qualifierStr,typeStr,key];
     }else if ([value isKindOfClass:[NSDictionary class]]){
         qualifierStr = @"strong";
         ESClassInfo *childInfo = classInfo.propertyClassDic[key];
@@ -100,9 +114,9 @@
         if (!typeStr) {
             typeStr = [key capitalizedString];
         }
-        return [NSString stringWithFormat:@"@property (nonatomic, %@) %@ *%@;",qualifierStr,typeStr,key];
+        return [NSString stringWithFormat:@"/** %@ */ \n@property (nonatomic, %@) %@ *%@;",keyNote,qualifierStr,typeStr,key];
     }
-    return [NSString stringWithFormat:@"@property (nonatomic, %@) %@ *%@;",qualifierStr,typeStr,key];
+    return [NSString stringWithFormat:@"/** %@ */ \n@property (nonatomic, %@) %@ *%@;",keyNote,qualifierStr,typeStr,key];
 }
 
 
